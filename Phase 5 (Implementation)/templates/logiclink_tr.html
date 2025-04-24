@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<!--Autor: Uroš Rajčić 2021/0540 & Filip Rinkovec 2019/0463 -->
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>LogicLink</title>
+		<link rel="stylesheet" href="/static/style.css" />
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="/static/LL_training.js"></script>
+	</head>
+	<body>
+		<form action="/get" target="hidden-form">
+			<div class="topnav">
+				<a href="javascript:void(0);" class="icon">
+					<div class="container" onclick="myFunction1(this); myFunction()">
+						<div class="bar1"></div>
+						<div class="bar2"></div>
+						<div class="bar3"></div>
+					</div>
+				</a>
+				<nav>
+					<a href="/etrivia"><img src="/static/logo2.png" class = "center" alt="etrivia" onclick="window.location.href='/etrivia'"></a>
+				</nav>
+
+				<div class="active">
+					<div id="myLinks">
+						{% if not user.is_authenticated %}
+						<a href="/etrivia/login">Log-in</a><br>
+                        {% endif %}
+						<a href="/etrivia">Home</a><br>
+						<a href="/etrivia/leaderboard">Leaderboard</a><br>
+						<a href="/etrivia/profile">Profile</a><br>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'logout' %}">Logout</a>
+                        {% endif %}
+					</div>
+				</div>
+			</div>
+			<div class="nav-container">
+
+			</div>
+			<div class="header-container">
+				<div class="wrapper">
+					<header>
+						<HR width=120&percnt;  size=8 class="line">
+
+					</header>
+					<div class="statistics_container">
+						<header><h1>Logic Link</h1></header>
+						<header><h2 id="score-header">Score: 123</h2></header>
+					</div>
+                    <div class="statistics_container">
+                        <header><h1 id="prompt" style="text-align: center;" >Prompt?</h1></header>
+                    </div>
+					<div id="logicLinkContainer">
+						<div id="leftWords">
+							<div class="word" data-target="1">Spojnica11</div>
+							<div class="word" data-target="2">Spojnica12</div>
+							<div class="word" data-target="3">Spojnica13</div>
+							<div class="word" data-target="4">Spojnica14</div>
+							<div class="word" data-target="5">Spojnica15</div>
+							<div class="word" data-target="6">Spojnica16</div>
+							<div class="word" data-target="7">Spojnica17</div>
+							<div class="word" data-target="8">Spojnica18</div>
+						</div>
+
+
+						<div id="rightWords">
+							<div class="match" data-id="1">Spojnica21</div>
+							<div class="match" data-id="2">Spojnica22</div>
+							<div class="match" data-id="3">Spojnica23</div>
+							<div class="match" data-id="4">Spojnica24</div>
+							<div class="match" data-id="5">Spojnica25</div>
+							<div class="match" data-id="6">Spojnica26</div>
+							<div class="match" data-id="7">Spojnica27</div>
+							<div class="match" data-id="8">Spojnica28</div>
+						</div>
+					</div>
+				</div>
+				<br>
+				<a href="/etrivia/training/" class="gradient-button">Back To Game Selection</a>
+            </div>
+
+
+			<script>
+
+
+			</script>
+		</form>
+	</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<!--Autor: Uroš Rajčić 2021/0540 & Filip Rinkovec 2019/0463-->
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Admin Question of Wisdom</title>
+		<link rel="stylesheet" href="/static/style.css" />
+	</head>
+	<body>	
+		<form action="/get" target="hidden-form">
+			<div class="topnav">
+				<a href="javascript:void(0);" class="icon">
+					<div class="container" onclick="myFunction1(this); myFunction()">
+						<div class="bar1"></div>
+						<div class="bar2"></div>
+						<div class="bar3"></div>
+					</div>
+				</a>
+				<nav>
+					<a href="/admin/admin_home.html"><img src="/static/logo2.png" class = "center"></a>
+				</nav>	
+				<div class="active">
+					<div id="myLinks">
+						<!--Autor: Filip Rinkovec 2019/0463-->
+						{% if not user.is_authenticated %}
+						<a href="/admin/login">Log-in</a><br>
+                        {% endif %}
+						<a href="/admin">Home</a><br>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'logout' %}">Logout</a>
+                        {% endif %}
+					</div>
+				</div>
+			</div>
+
+			<div class="header-container">
+				<div class="wrapper">
+					<header>
+						<HR width=120&percnt;  size=8 class="line">
+							<div class = "hero-content">
+                                <br>
+								<div>
+									<a href="add_question" class="gradient-button">Add Question</a>
+                                    <a href="remove_question" class="gradient-button">Remove Question</a>
+								</div>
+								<br>
+							</div>
+					</header>
+				</div>
+			</div>
+		</form>
+		<script>
+			function myFunction()
+			{
+				var x = document.getElementById("myLinks");
+				if (x.style.display === "block")
+				{
+					x.style.display = "none";
+				}
+				else
+				{
+					x.style.display = "block";
+				}
+			}
+			function myFunction1(x) {
+			  x.classList.toggle("change");
+			}
+		</script>
+	</body>
+</html>

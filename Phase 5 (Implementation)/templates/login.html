@@ -1,0 +1,85 @@
+<!DOCTYPE HTML>
+<!--Autor: Uroš Rajčić 2021/0540 -->
+<!--Autor(form): Filip Rinkovec 2019/0463 -->
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>LogIn</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'style.css' %}" />
+    </head>
+    <body>    
+        <div class="topnav">
+            <a href="javascript:void(0);" class="icon">
+                <div class="container" onclick="myFunction1(this); myFunction()">
+                    <div class="bar1"></div>
+                    <div class="bar2"></div>
+                    <div class="bar3"></div>
+                </div>
+            </a>
+            <nav>
+                <a href="/etrivia"><img src="{% static 'logo2.png' %}" class="center" alt="etrivia" onclick="window.location.href='/etrivia'"></a>
+            </nav>
+            <div class="active">
+                <div id="myLinks">
+                    <a href="/etrivia/login">Log-in</a><br>
+                    <a href="/etrivia">Home</a><br>
+                    <a href="/etrivia/leaderboard">Leaderboard</a><br>
+                    <a href="/etrivia/profile">Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="nav-container">
+
+        </div>
+        <div class="header-container">
+            <div class="wrapper">
+                <header>
+                    <hr width="120%" size="8" class="line">
+                    <div class="hero-content">
+                        <h1>Log in</h1>
+                        <br>
+                        {% if form.non_field_errors %}
+                            <ul class='form-errors'>
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <h2>{{ form.username.label }}</h2>
+                            {{ form.username }}
+                            <br>
+                            <h2>{{ form.password.label }}</h2>
+                            {{ form.password }}
+                            <br>
+                            <br>
+                            <input type="submit" class="submit-button" value="Submit">
+                        </form>
+
+                        <a href="/etrivia/signin">
+                            Not registered? Sign in
+                        </a>
+                        <br>
+                    </div>
+                </header>
+            </div>
+        </div>
+        <script>
+            function myFunction() {
+                var x = document.getElementById("myLinks");
+                if (x.style.display === "block") {
+                    x.style.display = "none";
+                } else {
+                    x.style.display = "block";
+                }
+            }
+            function myFunction1(x) {
+                x.classList.toggle("change");
+            }
+        </script>
+    </body>
+</html>

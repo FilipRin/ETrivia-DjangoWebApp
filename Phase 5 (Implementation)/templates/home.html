@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<!--Autor: Uroš Rajčić 2021/0540 & Filip Rinkovec 2019/0463 -->
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Home</title>
+		<link rel="stylesheet" href="/static/style.css" />
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="/static/home.js"></script>
+
+	</head>
+	<body>	
+		<form action="/get" target="hidden-form">
+			<div class="topnav">
+				<a href="javascript:void(0);" class="icon">
+					<div class="container" onclick="myFunction1(this); myFunction()">
+						<div class="bar1"></div>
+						<div class="bar2"></div>
+						<div class="bar3"></div>
+					</div>
+				</a>
+				<nav>
+					<a href="/etrivia"><img src="/static/logo2.png" class = "center" alt="etrivia" onclick="window.location.href='/etrivia'"></a>
+				</nav>
+				<div class="active">
+					<div id="myLinks">
+						<!--Autor: Filip Rinkovec 2019/0463-->
+						{% if not user.is_authenticated %}
+						<a href="/etrivia/login">Log-in</a><br>
+                        {% endif %}
+						<a href="/etrivia">Home</a><br>
+						<a href="/etrivia/leaderboard">Leaderboard</a><br>
+						<a href="/etrivia/profile">Profile</a><br>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'logout' %}">Logout</a>
+                        {% endif %}
+					</div>
+				</div>
+			</div>
+			<div class="header-container">
+				<div class="wrapper">
+					<header>
+						<HR width=120&percnt;  size=8 class="line">
+						<div class = "hero-content">
+							<h1> Choose </h1>
+							<p>
+								<a href="/etrivia/training" class="gradient-button">Training</a>
+                                {{ message }}
+								<a href="/etrivia/matchmaking" class="gradient-button">Matchmaking</a>
+                                <span>Currently in Queue: </span>
+                                <span id = "queue-count"></span>
+							</p>
+						</div>	
+					</header>
+				</div>
+			</div>
+			
+			<script>
+				function myFunction()
+				{
+					var x = document.getElementById("myLinks");
+					if (x.style.display === "block")
+					{
+						x.style.display = "none";
+					}
+					else
+					{
+						x.style.display = "block";
+					}
+				}
+				function myFunction1(x) {
+				  x.classList.toggle("change");
+				}
+			</script>
+		</form>
+	</body>
+</html>

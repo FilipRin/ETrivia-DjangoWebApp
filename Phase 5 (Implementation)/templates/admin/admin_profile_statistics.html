@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<!--Autor: Uroš Rajčić 2021/0540 & Filip Rinkovec 2019/0463-->
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Admin profile statistics</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <form id="ban-form">
+        <div class="topnav">
+            <a href="javascript:void(0);" class="icon">
+                <div class="container" onclick="myFunction1(this); myFunction()">
+                    <div class="bar1"></div>
+                    <div class="bar2"></div>
+                    <div class="bar3"></div>
+                </div>
+            </a>
+            <nav>
+                <a href="/admin/admin_home.html"><img src="/static/logo2.png" class = "center"></a>
+            </nav>	
+            <div class="active">
+                <div id="myLinks">
+                    <!--Autor: Filip Rinkovec 2019/0463-->
+                    {% if not user.is_authenticated %}
+                    <a href="/admin/login">Log-in</a><br>
+                    {% endif %}
+                    <a href="/admin">Home</a><br>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'logout' %}">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="header-container">
+            <div class="wrapper">
+                <header>
+                    <HR width=120% size=8 class="line">
+                </header>
+                <div class="statistics_container">
+                    <header><h1>Statistics</h1></header>
+                    <header><h2 id="username_header">{{ username }}</h2></header>
+                </div>
+                <hr>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Wins:</th>
+                            <td id="wins">{{ user_statistics.wins }}</td>
+                        </tr>
+                        <tr>
+                            <th>Losses:</th>
+                            <td id="losses">{{ user_statistics.losses }}</td>
+                        </tr>
+                        <tr>
+                            <th>Average Points on "Number Hunt":</th>
+                            <td id="NumberHunt_averagePoints">{{ user_statistics.average_points1 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Average Points on "Secret Sequence":</th>
+                            <td id="SecretSequence_averagePoints">{{ user_statistics.average_points2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Average Points on "Logic Link":</th>
+                            <td id="LogicLink_averagePoints">{{ user_statistics.average_points3 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Average Points on "Question of Wisdom":</th>
+                            <td id="QuestionOfWisdom_averagePoints">{{ user_statistics.average_points4 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <hr>
+                <div class="leaderboard_container">
+                    <input type="hidden" name="username" id="username_input" value="{{ username }}">
+                    <button class="answer" type="button" id="ban-button">Ban</button>
+                    <button class="answer" type="button" id="unban-button" style="display: none;">Unban</button>
+                    <button class="answer" type="button" id="reset-button">Reset</button>
+                </div>
+                <div id="ban-message"></div>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        $(document).ready(function() {
+            var csrf_token = '{{ csrf_token }}';
+            var username = $('#username_input').val();
+
+            // Check if the user is banned and toggle buttons
+            $.ajax({
+                type: 'GET',
+                url: '/admin/check_user_status/',
+                data: {
+                    'username': username
+                },
+                success: function(response) {
+                    if (response.is_banned) {
+                        $('#ban-button').hide();
+                        $('#unban-button').show();
+                    } else {
+                        $('#ban-button').show();
+                        $('#unban-button').hide();
+                    }
+                },
+                error: function(response) {
+                    $('#ban-message').text('An error occurred while checking user status.');
+                }
+            });
+
+            $('#ban-button').click(function() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/admin/ban_user/',
+                    data: {
+                        'username': username,
+                        'csrfmiddlewaretoken': csrf_token
+                    },
+                    success: function(response) {
+                        $('#ban-message').text(response);
+                        $('#ban-button').hide();
+                        $('#unban-button').show();
+                    },
+                    error: function(response) {
+                        $('#ban-message').text('An error occurred.');
+                    }
+                });
+            });
+
+            $('#unban-button').click(function() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/admin/unban_user/',
+                    data: {
+                        'username': username,
+                        'csrfmiddlewaretoken': csrf_token
+                    },
+                    success: function(response) {
+                        $('#ban-message').text(response);
+                        $('#unban-button').hide();
+                        $('#ban-button').show();
+                    },
+                    error: function(response) {
+                        $('#ban-message').text('An error occurred.');
+                    }
+                });
+            });
+
+            $('#reset-button').click(function() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/admin/reset_user_statistics/',
+                    data: {
+                        'username': username,
+                        'csrfmiddlewaretoken': csrf_token
+                    },
+                    success: function(response) {
+                        $('#ban-message').text(response.message);
+                        // Update the statistics to zero
+                        $('#wins').text(0);
+                        $('#losses').text(0);
+                        $('#NumberHunt_averagePoints').text(0);
+                        $('#SecretSequence_averagePoints').text(0);
+                        $('#LogicLink_averagePoints').text(0);
+                        $('#QuestionOfWisdom_averagePoints').text(0);
+                    },
+                    error: function(response) {
+                        $('#ban-message').text('An error occurred.');
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        function myFunction()
+        {
+            var x = document.getElementById("myLinks");
+            if (x.style.display === "block")
+            {
+                x.style.display = "none";
+            }
+            else
+            {
+                x.style.display = "block";
+            }
+        }
+        function myFunction1(x) {
+          x.classList.toggle("change");
+        }
+    </script>
+</body>
+</html>

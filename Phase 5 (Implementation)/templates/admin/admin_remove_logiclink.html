@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<!--Autor: Filip Rinkovec 2019/0463-->
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Admin Remove LL</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>  
+    <form id="removeLogicLinkForm" action="{% url 'remove_logic_link' %}" method="post">
+        {% csrf_token %}
+        <div class="topnav">
+            <a href="javascript:void(0);" class="icon">
+                <div class="container" onclick="myFunction1(this); myFunction()">
+                    <div class="bar1"></div>
+                    <div class="bar2"></div>
+                    <div class="bar3"></div>
+                </div>
+            </a>
+            <nav>
+                <a href="/admin/admin_home.html"><img src="/static/logo2.png" class = "center"></a>
+            </nav>	
+            <div class="active">
+                <div id="myLinks">
+                    <!--Autor: Filip Rinkovec 2019/0463-->
+                    {% if not user.is_authenticated %}
+                    <a href="/admin/login">Log-in</a><br>
+                    {% endif %}
+                    <a href="/admin">Home</a><br>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'logout' %}">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="header-container">
+            <div class="wrapper">
+                <header>
+                    <HR width=120% size=8 class="line">
+                </header>
+                <br>
+                <h1>Select and delete</h1><br>
+                <hr>
+                <div class="leaderboard_table">
+                    <table>
+                        <tbody id="linksTableBody">
+                            <tr>
+                                <th>Link Description</th>
+                                <th>Left Item</th>
+                                <th>Right Item</th>
+                                <th>Delete</th>
+                            </tr>
+                            {% for link in links %}
+                            <tr data-id="{{ link.idllfield }}">
+                                <td>{{ link.idll.prompt }}</td> 
+                                <td>{{ link.left }}</td>
+                                <td>{{ link.right }}</td>
+                                <td><input type="checkbox" name="delete" value="{{ link.idllfield }}"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button formmethod="post" class="gradient-button" type="submit">Delete</button>
+                <div id="message"></div>
+            </div>
+        </div>
+    </form>
+    <script>
+        function myFunction()
+        {
+            var x = document.getElementById("myLinks");
+            if (x.style.display === "block")
+            {
+                x.style.display = "none";
+            }
+            else
+            {
+                x.style.display = "block";
+            }
+        }
+        function myFunction1(x) {
+          x.classList.toggle("change");
+        }
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#removeLogicLinkForm').on('submit', function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        $('#message').text('Successfully removed Logic Link!')
+                        .css({
+                            'color': 'darkgreen',
+                            'font-size': '30px',
+                            'font-weight': 'bold'
+                        });
+
+                        // Remove the deleted rows from the table
+                        $('input[name="delete"]:checked').each(function() {
+                            $('tr[data-id="' + $(this).val() + '"]').remove();
+                        });
+                    },
+                    error: function(response) {
+                        $('#message').text('Failed to remove Logic Link.')
+                        .css({
+                            'color': 'red',
+                            'font-size': '30px',
+                            'font-weight': 'bold'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
