@@ -65,59 +65,6 @@ def signin_request(request):
 from django.utils.timezone import now
 from datetime import timedelta
 
-# Autor: Mihajlo Rajić 2021/0331
-def leaderboard(request):
-    leave_game(request)
-    
-    time_frame = request.GET.get('time_frame', 'daily')
-    today = now().date()
-
-    if time_frame == 'daily':
-        start_date = today
-    elif time_frame == 'weekly':
-        start_date = today - timedelta(days=today.weekday())
-    elif time_frame == 'monthly':
-        start_date = today.replace(day=1)
-    else:
-        start_date = today
-
-    end_date = now()
-
-    print(end_date, " ", start_date)
-
-    results = Result.objects.filter(timestamp__range=[start_date, end_date])
-
-    stats = {}
-    for result in results:
-        user_id = result.iduser_id
-        if user_id not in stats:
-            stats[user_id] = {'wins': 0, 'losses': 0}
-
-        if result.won == 'won':
-            stats[user_id]['wins'] += 1
-        else:
-            stats[user_id]['losses'] += 1
-
-    leaderboard_data = []
-    for user_id, stat in stats.items():
-        wins = stat['wins']
-        losses = stat['losses']
-        total_games = wins + losses
-        win_percentage = (wins / total_games) * 100 if total_games > 0 else 0
-        win_percentage = round(win_percentage, 2) 
-
-        leaderboard_data.append({
-            'name': User.objects.get(id=user_id).username,
-            'wins': wins,
-            'losses': losses,
-            'win_percentage': win_percentage,
-        })
-
-    leaderboard_data.sort(key=lambda x: (-x['wins'], -x['win_percentage']))
-
-    print("leaderboard")
-    return render(request, "leaderboard.html", {'leaderboard_data': leaderboard_data})
-
 
 def training(request):
     leave_game(request)
@@ -125,7 +72,7 @@ def training(request):
     print("training")
     return render(request,"training.html",{})
 
-# Autor: Mihajlo Rajić 2021/0331
+# Autor: Mihajlo Rajić 2021/0331 & Filip Rinkovec 2019/0463
 @login_required(login_url='login')
 def profile(request):
     leave_game(request)
@@ -136,53 +83,6 @@ def profile(request):
 
 from django.db.models import Avg
 
-# Autor: Mihajlo Rajić 2021/0331
-def get_user_statistics(user_id):
-    wins = Result.objects.filter(iduser=user_id, won='won').count()
-    
-    losses = Result.objects.filter(iduser=user_id, won='lost').count()
-    
-    average_points1 = Result.objects.filter(iduser=user_id).aggregate(Avg('points1'))['points1__avg']
-    average_points2 = Result.objects.filter(iduser=user_id).aggregate(Avg('points2'))['points2__avg']
-    average_points3 = Result.objects.filter(iduser=user_id).aggregate(Avg('points3'))['points3__avg']
-    average_points4 = Result.objects.filter(iduser=user_id).aggregate(Avg('points4'))['points4__avg']
-
-    average_points1 = round(average_points1, 2) if average_points1 is not None else 0
-    average_points2 = round(average_points2, 2) if average_points2 is not None else 0
-    average_points3 = round(average_points3, 2) if average_points3 is not None else 0
-    average_points4 = round(average_points4, 2) if average_points4 is not None else 0
-    
-    
-    return {
-        'wins': wins,
-        'losses': losses,
-        'average_points1': average_points1,
-        'average_points2': average_points2,
-        'average_points3': average_points3,
-        'average_points4': average_points4,
-    }
-
-
-
-
-def matchmaking(request):
-    # Autor: Djordje Jovanovic 0293/2021
-    #ovo ubacuje usera u queue
-    username = str(getattr(request,'user'))
-
-    if username == "AnonymousUser":
-        #user nije ulogovan, ne moze da pristupi
-        context = {
-            "message":
-                "Available only to registered users!"
-        }
-        return render(request,"home.html",context)
-
-    if Multiplayerqueue.objects.all().filter(username=username).count()==0  and not user_in_game(username):
-        Multiplayerqueue.objects.create(username=username, timejoined=datetime.now())
-        print(username + " Usao u queue")
-
-    return render(request,"matchmaking.html",{})
 
 def user_in_game(username):
     #provera da li je korisnik u partiji
@@ -192,179 +92,12 @@ def user_in_game(username):
     return True
 import random
 
-from django.db.models import Count
-def get_random_question(num,which_class):
-    # Autor: Djordje Jovanovic 2021/0293
-    #num je broj random brojeva
-    #funkcija vraca ili random broj pianja za qow ili jedno nasumicno pitanje za LL gde mora da vazi da postoji bar 8 spojnica
-    used = set()
-    ret = []
-    questions = Questionsqow.objects.all()
-    min = 0
-    max = 1
-    if (which_class == "qow"):
-        max = Questionsqow.objects.count()
-    elif (which_class == "ll"):
-        annotated_questions = Questionsll.objects.annotate(llfield_count = Count('llfield'))
-        filtered_questions = annotated_questions.filter(llfield_count__gte=8).order_by("-idll")
-        numm = random.randint(0, filtered_questions.count() - 1)
-        #print("QUESTION: " + str(filtered_questions[numm].idll))
-        return filtered_questions[numm]
-
-    number = random.randint(min,max-1)
-    for i in range(num):
-        while number in used:
-            number = random.randint(min, max-1)
-        ret.append(questions[number])
-        used.add(number)
-
-    return ret
-
-
-from .models import Game
-@receiver(post_save,sender = Multiplayerqueue)
-def check_for_match(sender,instance,created,**kwargs):
-    #Autor: Djordje Jovanovic 0293/2021
-    #Ovo je funkcija koja se poziva kad god se doda nov ulaz u multiplayerqueue
-    #funkcija onda proverava da li postoje bar 2 igraca u queue i pravi game sa njima, na kraju ih izbacuje iz queue
-    if created:
-        queue_count = Multiplayerqueue.objects.count()
-        print("usli u check")
-        if queue_count >=2:
-
-            users = Multiplayerqueue.objects.order_by("timejoined")[:2]
-
-            #ovde treba da se izgenerisu 5 IDQoW i po 1 za ostale igre
-            user_id1 = User.objects.filter(username=users[0].username)[0]
-            user_id2 = User.objects.filter(username=users[1].username)[0]
-
-            username1 = user_id1.username
-            username2 = user_id2.username
-
-            print("usli u check1")
-            numberhunt_values = generate_numberhunt()
-            numberhunt = NumberHunt.objects.create(
-                goal_number=numberhunt_values[0],number1=numberhunt_values[1], number2=numberhunt_values[2],
-                number3=numberhunt_values[3],number4=numberhunt_values[4],number5=numberhunt_values[5],
-                number6=numberhunt_values[6]
-            )
-            #numberhunt.save()
-            print("usli u check2")
-            secretsequence_values = generateSecretSequence()
-            secretsequence = SecretSequence.objects.create(
-                symbol11=secretsequence_values[0][0],symbol12=secretsequence_values[0][1],symbol13=secretsequence_values[0][2],
-                symbol21=secretsequence_values[1][0],symbol22=secretsequence_values[1][1],symbol23=secretsequence_values[1][2],symbol24=secretsequence_values[1][3],
-                symbol31=secretsequence_values[2][0],symbol32=secretsequence_values[2][1],symbol33=secretsequence_values[2][2],symbol34=secretsequence_values[2][3],
-                symbol35=secretsequence_values[2][4]
-            )
-            #secretsequence.save()
-
-            print("usli u check3")
-            ll_question = get_random_question(0,"ll")
-
-            qow_questions = get_random_question(5,"qow")
-
-
-            print("usli u check4")
-            game = Game.objects.create(timestarted=None,iduser1=user_id1, iduser2=user_id2,
-             idll=ll_question,idqow1_id=qow_questions[0].idqow, idqow2_id=qow_questions[1].idqow,idqow3_id=qow_questions[2].idqow,
-                                       idqow4_id=qow_questions[3].idqow,idqow5_id=qow_questions[4].idqow,
-                                       idnh=numberhunt,idss=secretsequence)
-            #game.save()
-            print("Created game " + user_id1.username + " vs " + user_id2.username)
-            #Ovde se 2 puta brise users[0] jer nakon brisanja prvog u users zapravo ostaje samo 1
-
-            for u in users:
-                u.delete()
-
-
-
-
-
-#Autor: Uroš Rajčić 2021/0540
-def get_numbers(request):
-    #metoda koja vraca brojeve za NH igru
-    number = random.randint(1, 999)
-    
-    number1 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number2 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number3 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number4 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number5 = random.choice([10, 15, 20])
-    number6 = random.choice([25, 50, 100])
-    
-
-    response_data = {
-        "status": "success",
-        "message": "Hello from server!",
-        "number_to_find": number,
-        "numbers_made": [number1, number2, number3, number4, number5, number6]
-    }
-
-    return JsonResponse(response_data)
-
-#Autor: Mihajlo Rajić 2021/0331
-def get_secret_sequence(request):
-    sequence = generateSecretSequence()
-
-    response_data = {
-        "status": "success",
-        "message": "Hello from server!",
-        "secret_sequence": sequence
-    }
-
-    return JsonResponse(response_data)
-
-
-
-def get_qow(request):
-    # Autor: Djordje Jovanovic 2021/0293
-    question = Questionsqow.objects.order_by("?")[0]
-
-    response_data = {
-        "status":"success",
-        "message":"Hello from server!",
-        "question":question.question,
-        "answer":question.correct,
-        "incorrect":[question.incorrect1,question.incorrect2,question.incorrect3]
-    }
-
-    return JsonResponse(response_data)
-
-
-#Autor: Uroš Rajčić 2021/0540
-def number_hunt_page(request):
-    return render(request,"numberhunt_tr.html",{})
-
 
 def logiclink_page(request):
     return render(request,"logiclink_tr.html",{})
 
-def question_of_wisdom_page(request):
-    return render(request,"questionofwisdom_tr.html",{})
-
-
-#Autor: Mihajlo Rajić 2021/0331
-def secret_sequence_page(request):
-    return render(request,"secretsequence_tr.html",{})
-
-
-
-
-def get_queue(request):
-    # Autor: Djordje Jovanovic 2021/0293
-    #metoda koja dohvata broj ljudi u queue koji prikazujemo na home stranici
-    response_data = {
-        "status":"success",
-        "message":"Hello from server!",
-        "count":Multiplayerqueue.objects.count()
-    }
-
-    return JsonResponse(response_data)
-
-
 def get_game(request):
-    # Autor: Djordje Jovanovic 0293/2021
+    # Autor: Filip Rinkovec 2019/0463 & Djordje Jovanovic 0293/2021 
     #metoda koja dohvata pitanja za multiplayer game nasim igracima
     username = getattr(request, "user")
     print(username)
@@ -425,62 +158,11 @@ def get_game(request):
     return JsonResponse(response_data)
 
 #pomocne metode koje malo ulepsavaju kod
-def get_numberhunt_mm(numberhunt):
-    # Autor: Djordje Jovanovic 0293/2021
-    numberhunt_numbers = []
-
-    numberhunt_numbers.append(numberhunt.goal_number)
-    numberhunt_numbers.append(numberhunt.number1)
-    numberhunt_numbers.append(numberhunt.number2)
-    numberhunt_numbers.append(numberhunt.number3)
-    numberhunt_numbers.append(numberhunt.number4)
-    numberhunt_numbers.append(numberhunt.number5)
-    numberhunt_numbers.append(numberhunt.number6)
-
-    return numberhunt_numbers
-def get_secretsequence_mm(secret_sequence):
-
-
-    secret_sequence_values = []
-
-    secret_sequence_values.append(secret_sequence.symbol11)
-    secret_sequence_values.append(secret_sequence.symbol12)
-    secret_sequence_values.append(secret_sequence.symbol13)
-    secret_sequence_values.append(secret_sequence.symbol21)
-    secret_sequence_values.append(secret_sequence.symbol22)
-    secret_sequence_values.append(secret_sequence.symbol23)
-    secret_sequence_values.append(secret_sequence.symbol24)
-    secret_sequence_values.append(secret_sequence.symbol31)
-    secret_sequence_values.append(secret_sequence.symbol32)
-    secret_sequence_values.append(secret_sequence.symbol33)
-    secret_sequence_values.append(secret_sequence.symbol34)
-    secret_sequence_values.append(secret_sequence.symbol35)
-
-    return secret_sequence_values
-def generate_numberhunt():
-    ret_val = []
-    number = random.randint(1, 999)
-
-    number1 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number2 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number3 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number4 = random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    number5 = random.choice([10, 15, 20])
-    number6 = random.choice([25, 50, 100])
-
-    ret_val.append(number)
-    ret_val.append(number1)
-    ret_val.append(number2)
-    ret_val.append(number3)
-    ret_val.append(number4)
-    ret_val.append(number5)
-    ret_val.append(number6)
-    return ret_val
 
 from .models import Llfield
 def get_ll(id_ll):
     #metoda koja na osnovu id_LL vraca parove za spojnice
-    # Autor: Djordje Jovanovic 0293/2021
+    # Autor: Filip Rinkovec 2019/0463
     ret_val = []
     links = Llfield.objects.all().filter(idll=id_ll)
 
@@ -515,58 +197,9 @@ def get_qll(request):
     return JsonResponse(response_data)
 
 
-# Autor: Mihajlo Rajic 0331/21
-# Metoda vraca 3 niza od po 3,4,5 random simbola
-def generateSecretSequence():
-    ret_val = []
-    seq1 = []
-    seq2 = []
-    seq3 = []
-    for i in range(3):
-        seq1.append(random.randint(1, 6))
-    ret_val.append(seq1)
-
-    for i in range(4):
-        seq2.append(random.randint(1, 6))
-    ret_val.append(seq2)
-
-    for i in range(5):
-        seq3.append(random.randint(1, 6))
-    ret_val.append(seq3)
-
-    return ret_val
-
-def get_qow_mm(game):
-    #Autor: Djordje Jovanovic 0293/2021
-    ret_val = []
-    indexes = []
-
-    indexes.append(game.idqow1)
-    indexes.append(game.idqow2)
-    indexes.append(game.idqow3)
-    indexes.append(game.idqow4)
-    indexes.append(game.idqow5)
-
-    for index in indexes:
-        ret_val.append([index.question,
-                        index.correct,
-                        index.incorrect1,
-                        index.incorrect2,
-                        index.incorrect3])
-    return ret_val
-
-#dohvatanje stranica za multiplayer partiju:
-def multiplayer_match(request):
-    return render(request,"numberhunt_mm.html",{})
-
-def ss_multiplayer(request):
-    return render(request, "secretsequence_mm.html", {})
-
 def ll_multiplayer(request):
     return render(request, "logiclink_mm.html", {})
 
-def qow_multiplayer(request):
-    return render(request, "questionofwisdom_mm.html", {})
 def result_multiplayer(request):
     username = getattr(request, "user")
     return render(request, "result.html", {"username": username})
@@ -683,15 +316,6 @@ def get_total(result):
     ret += int(result.points3)
     ret += int(result.points4)
     return ret
-
-#autor Djordje Jovanovic 0293/2021
-def leave_queue(request):
-    username = getattr(request, "user")
-    if Multiplayerqueue.objects.all().filter(username=username).count() == 1:
-        Multiplayerqueue.objects.all().filter(username=username).delete()
-    print(str(username) + "napustio queue")
-
-    return JsonResponse({"status": "success"})
 
 def leave_game(request):
 
