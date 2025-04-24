@@ -26,5 +26,5 @@ Team project (4 people) for University
 
 * This project was created through 7 phases.
   It was developed in Django (Python-based framework), but we also used MySQL for relational databases, Javascript (JQuery) for page functionality with Ajax for event-handling.
-  Testing was done using Selenium IDE and WebDriver.
+  Testing was done using Selenium IDE and WebDriver. Database design was done in Erwin data modeler.
   Apart from coding, I also wrote documentaion about functionality of certain parts of project, as well as database design.
