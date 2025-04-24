@@ -28,3 +28,5 @@ Team project (4 people) for University
   It was developed in Django (Python-based framework), but we also used MySQL for relational databases, Javascript (JQuery) for page functionality with Ajax for event-handling.
   Testing was done using Selenium IDE and WebDriver. Database design was done in Erwin data modeler.
   Apart from coding, I also wrote documentaion about functionality of certain parts of project, project architecture and diagrams in StarUML, formal inspection of another team's project as well as database design specification.
+
+-*NOTICE*- I uploaded parts of code that i worked on, so a lot of code is left out that makes this project work, because it belongs to colleagues. If you want to see project in action you can contact me directly.
