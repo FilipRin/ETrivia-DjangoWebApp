@@ -1,0 +1,96 @@
+CREATE TABLE `Admin` (
+  `IdUser` int NOT NULL,
+  PRIMARY KEY (`IdUser`)
+);
+
+CREATE TABLE `Game` (
+  `IdGame` int NOT NULL,
+  `TimeStarted` datetime NOT NULL,
+  `IdUser1` int NOT NULL,
+  `IdUser2` int NOT NULL,
+  `IdQOW1` int DEFAULT NULL,
+  `IdQOW2` int DEFAULT NULL,
+  `IdQOW3` int DEFAULT NULL,
+  `IdQOW4` int DEFAULT NULL,
+  `IdQOW5` int DEFAULT NULL,
+  `IdLL` int DEFAULT NULL,
+  PRIMARY KEY (`IdGame`)
+);
+
+CREATE TABLE `LLField` (
+  `IdLLField` int NOT NULL,
+  `Text` varchar(50) NOT NULL,
+  `IdLL` int NOT NULL,
+  PRIMARY KEY (`IdLLField`)
+);
+
+CREATE TABLE `MultiplayerQueue` (
+  `IdQueue` int NOT NULL,
+  `Username` varchar(18) DEFAULT NULL,
+  `TimeJoined` datetime DEFAULT NULL,
+  PRIMARY KEY (`IdQueue`)
+);
+
+CREATE TABLE `QuestionsLL` (
+  `IdLL` int NOT NULL,
+  `Prompt` char(18) DEFAULT NULL,
+  PRIMARY KEY (`IdLL`)
+);
+
+CREATE TABLE `QuestionsQOW` (
+  `IdQOW` int NOT NULL,
+  `Question` varchar(50) NOT NULL,
+  `Correct` varchar(50) NOT NULL,
+  `IncorrectList` varchar(50) NOT NULL,
+  PRIMARY KEY (`IdQOW`)
+);
+
+CREATE TABLE `RegisteredUser` (
+  `IdUser` int NOT NULL,
+  `IdQueue` int DEFAULT NULL,
+  PRIMARY KEY (`IdUser`)
+);
+
+CREATE TABLE `Result` (
+  `IdResult` int NOT NULL,
+  `Points1` int NOT NULL,
+  `Points2` int NOT NULL,
+  `Points3` int NOT NULL,
+  `Points4` int NOT NULL,
+  `Won` bit(1) NOT NULL,
+  `IdGame` int NOT NULL,
+  `IdUser` int NOT NULL,
+  PRIMARY KEY (`IdResult`)
+);
+
+CREATE TABLE `User` (
+  `IdUser` int NOT NULL,
+  `Username` varchar(20) NOT NULL,
+  `Password` varchar(20) NOT NULL,
+  PRIMARY KEY (`IdUser`),
+  UNIQUE KEY `Username` (`Username`)
+);
+
+ALTER TABLE `Admin`
+  ADD CONSTRAINT `R_1` FOREIGN KEY (`IdUser`) REFERENCES `User` (`IdUser`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `Game`
+  ADD CONSTRAINT `R_8` FOREIGN KEY (`IdUser2`) REFERENCES `RegisteredUser` (`IdUser`),
+  ADD CONSTRAINT `R_9` FOREIGN KEY (`IdUser1`) REFERENCES `RegisteredUser` (`IdUser`),
+  ADD CONSTRAINT `R_23` FOREIGN KEY (`IdQOW1`) REFERENCES `QuestionsQOW` (`IdQOW`),
+  ADD CONSTRAINT `R_24` FOREIGN KEY (`IdLL`) REFERENCES `QuestionsLL` (`IdLL`),
+  ADD CONSTRAINT `R_25` FOREIGN KEY (`IdQOW2`) REFERENCES `QuestionsQOW` (`IdQOW`),
+  ADD CONSTRAINT `R_26` FOREIGN KEY (`IdQOW3`) REFERENCES `QuestionsQOW` (`IdQOW`),
+  ADD CONSTRAINT `R_27` FOREIGN KEY (`IdQOW5`) REFERENCES `QuestionsQOW` (`IdQOW`),
+  ADD CONSTRAINT `R_28` FOREIGN KEY (`IdQOW4`) REFERENCES `QuestionsQOW` (`IdQOW`);
+
+ALTER TABLE `LLField`
+  ADD CONSTRAINT `R_17` FOREIGN KEY (`IdLL`) REFERENCES `QuestionsLL` (`IdLL`);
+
+ALTER TABLE `RegisteredUser`
+  ADD CONSTRAINT `R_2` FOREIGN KEY (`IdUser`) REFERENCES `User` (`IdUser`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `R_19` FOREIGN KEY (`IdQueue`) REFERENCES `MultiplayerQueue` (`IdQueue`);
+
+ALTER TABLE `Result`
+  ADD CONSTRAINT `R_12` FOREIGN KEY (`IdGame`) REFERENCES `Game` (`IdGame`),
+  ADD CONSTRAINT `R_13` FOREIGN KEY (`IdUser`) REFERENCES `RegisteredUser` (`IdUser`);
